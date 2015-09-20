@@ -3,7 +3,7 @@ html, body {
     font-size: 10pt; overflow: auto; height: 100%;
 }
 div#map_container     { float: left; width: 100%; height: 100%; }
-div#map_canvas        { height: 100%; margin-right: 420px; z-index:1; }
+div#map_canvas        { height: 100%; margin-right: 420px; z-index:1;}
 
 div#sidebar_container { float: left; width: 410px; margin-left: -410px; height: 100%; overflow: auto; }
 
@@ -42,8 +42,10 @@ div#loader { z-index: 99; position: absolute; left: 0; top: 0; bottom: 0; right:
 
 .pointer { cursor: pointer; }
 
-#draggable-legend { z-index:99; background-color: rgba(200,200,255,.7); width: 120px; padding: 5px; position:absolute; top:220px; left:10px; cursor: move; border: black 1px solid; }
-#draggable-panel { z-index:100; background-color: rgba(200,200,255,.7); width: 250px; padding: 20px; position:absolute; top:10px; left:100px; cursor: move; border: black 1px solid; }
+#draggable-altitude-legend { z-index:99; background-color: rgba(200,200,255,.7); width: 120px; padding: 5px;  position:absolute; top:360px; left:10px; cursor: move; border: black 1px solid; 	}
+#draggable-range-legend    { z-index:98; background-color: rgba(200,200,255,.7); width: 120px; padding: 5px;  position:absolute; top:230px; left:10px; cursor: move; border: black 1px solid; 	}
+#draggable-panel { z-index:100; background-color: rgba(200,200,255,.7); width: 250px; padding: 20px; position:absolute; top:10px; left:100px; cursor: move; border: black 1px solid; 	}
+
 #radius-label, #opacity-label, #max-label { margin-top: 10px; }
 #radius-slider, #opacity-slider, #max-slider { width:250px; margin-top: 10px; }
-#radius-slider .ui-slider-handle,#opacity-slider .ui-slider-handle,#max-slider .ui-slider-handle { cursor:pointer; }
+#radius-slider .ui-slider-handle, #opacity-slider .ui-slider-handle, #max-slider .ui-slider-handle { cursor:pointer; }
