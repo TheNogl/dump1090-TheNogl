@@ -2,10 +2,11 @@
 	<head>
 		<meta charset="utf-8"/>
 		<link rel="stylesheet" type="text/css" href="style.css" />
-		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=geometry"></script>
+		<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+		<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans|Raleway" />
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=geometry,visualization"></script>
 		<script type="text/javascript" src="config.js"></script>
 		<script type="text/javascript" src="markers.js"></script>
 		<script type="text/javascript" src="dbloader.js"></script>
@@ -16,6 +17,10 @@
 		<script type="text/javascript" src="coolclock/excanvas.js"></script>
 		<script type="text/javascript" src="coolclock/coolclock.js"></script>
 		<script type="text/javascript" src="coolclock/moreskins.js"></script>
+		<script type="text/javascript" src="papaparse.min.js"></script>
+                <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+                <script type="text/javascript" src="https://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+
         <title>DUMP1090</title>
 	</head>
 	<body onload="initialize()">
@@ -39,6 +44,16 @@
 
 		<div id="map_container">
 			<div id="map_canvas"></div>
+			<div id="draggable-panel">
+                                <input type="file" id="csv-file" name="files"/>
+                                <div id="radius-label">radius: 6</div>
+                                <div id="radius-slider"></div>
+                                <div id="opacity-label">opacity: 0.5</div>
+                                <div id="opacity-slider"></div>
+                                <div id="max-label">max: -</div>
+                                <div id="max-slider"></div>
+                        </div>
+			<div id="draggable-legend"></div>
 		</div>
 		<div id="sidebar_container">
 			<div id="sidebar_canvas">
