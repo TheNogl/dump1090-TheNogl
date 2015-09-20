@@ -48,7 +48,7 @@ function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// This opens a csv file and parse it to weight, lat and lon data.
+// This opens a csv heatmap file and parse it to weight, lat and lon data.
 function handleFileSelect(evt) {
         var file = evt.target.files[0];
         Papa.parse(file, {
@@ -74,7 +74,7 @@ function handleFileSelect(evt) {
                                                 weight: row["weight"]
                                         });
                                 }
-                                $("#max-label").html("max: "+numberWithCommas(max));
+                                $("#max-label").html("intencity: "+numberWithCommas(max));
                                 $("#max-slider").slider("option","max",max);
                                 $("#max-slider").slider("option","value",max);
                         }
