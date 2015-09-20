@@ -39,6 +39,15 @@ SiteLat     = 45.0;            // position of the marker
 SiteLon     = 9.0;
 SiteName    = "My Radar Site"; // tooltip of the marker
 
+// User Map (KML File)
+// Enables KML overlay on map, UserMap must have a value below when "true"
+UserMapShow = true;            //true to show KML
+// KML to show: 
+UserMap     = "https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/radar.kml";  // your KML URL (publicly available domain)
+
+// User heatmap
+// Enables Heatmap on map
+HeatmapShow = true;            //true to show Heatmap
 
 // -- Marker settings -------------------------------------
 
@@ -88,16 +97,29 @@ ColorByAlt = {
 //         stale :    { h: 0, s: 0, l: +30 }
 // };
 
-//User Map (KML File)
-//Enables KML overlay on map, UserMap must have a value below when "true"
-UserMapShow = true;            //true to show KML
-//KML to show: 
-UserMap     = "https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/radar.kml";  //URL (publicly available domain)
-//demo URL = https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/radar.kml (area the netherlands)
+// -- Display aircraft in color depending on their altitude
+ShowAltitudesByColor = true; // true or false
+// -- Display aircraft color legend
+ShowAircraftColorLegend = true; // true or false
+// Number of altitude zones displayed
+NumberOfAltitudeZones = 24;
+// Maximum altitude in meters.
+MaxAltitudeMeters = 12000;
+// Maximum altitude in feet.
+MaxAltitudeFeet = 36000;
 
-SiteCircles = true; // true to show circles (only shown if the center marker is shown)
-// In nautical miles or km (depending settings value 'Metric')
-SiteCirclesDistances = new Array(100,150,200);
+ShowSiteCircles = true; // true to show circles (only shown if the center marker is shown)
+ShowSiteCirclesLegend = true ; // true to show circle distance legend
+// Circle radius in nautical miles or km (depending settings value 'Metric')
+SiteCircle = [
+        { distance:  50, strokeweight: 3, color: "black" },
+        { distance: 100, strokeweight: 3, color: "OrangeRed" },
+        { distance: 150, strokeweight: 3, color: "red" },
+        { distance: 200, strokeweight: 3, color: "purple" },
+        { distance: 250, strokeweight: 3, color: "green" },
+        { distance: 300, strokeweight: 3, color: "DeepSkyBlue" },
+        { distance: 350, strokeweight: 3, color: "navy" }
+];
 
 // Show the clocks at the top of the righthand pane? You can disable the clocks if you want here
 ShowClocks = true;
