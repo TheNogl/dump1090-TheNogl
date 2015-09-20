@@ -7,7 +7,7 @@ var Planes        = {};
 var PlanesOrdered = [];
 var SelectedPlane = null;
 var FollowSelected = false;
-var UserKML       = null;
+var UserKML	  = null;
 var pointarray;
 var heatmap;
 var csv = [];
@@ -45,44 +45,45 @@ var NBSP='\u00a0';
 
 // This converts numbers with commas
 function numberWithCommas(x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 // This opens a csv heatmap file and parse it to weight, lat and lon data.
 function handleFileSelect(evt) {
-        var file = evt.target.files[0];
-        Papa.parse(file, {
-                quotes: true,
-                delimiter: ";",
-                header: true,
-                dynamicTyping: true,
-                complete: function(results) {
-                        var idx;
-                        csv = [];
-                        if(results.meta.fields.indexOf("weight") == -1) {
-                                for(idx in results["data"]) {
-                                        var row = results["data"][idx];
-                                        csv.push(new google.maps.LatLng(row["lat"], row["lon"]))
-                                }
-                        } else {
-                                var max = results["data"][0]["weight"];
-                                for(idx in results["data"]) {
-                                        var row = results["data"][idx];
-                                        max = Math.max(max, row["weight"]);
-                                        csv.push({
-                                                location: new google.maps.LatLng(row["lat"], row["lon"]),
-                                                weight: row["weight"]
-                                        });
-                                }
-                                $("#max-label").html("intencity: "+numberWithCommas(max));
-                                $("#max-slider").slider("option","max",max);
-                                $("#max-slider").slider("option","value",max);
-                        }
-                        console.log(results);
-                        loadHeatmap(csv);
-                }
-        });
+	var file = evt.target.files[0];
+	Papa.parse(file, {
+		quotes: true,
+		delimiter: ";",
+		header: true,
+		dynamicTyping: true,
+		complete: function(results) {
+			var idx;
+			csv = [];
+			if(results.meta.fields.indexOf("weight") == -1) {
+				for(idx in results["data"]) {
+					var row = results["data"][idx];
+					csv.push(new google.maps.LatLng(row["lat"], row["lon"]))
+				}
+			} else {
+				var max = results["data"][0]["weight"];
+				for(idx in results["data"]) {
+					var row = results["data"][idx];
+					max = Math.max(max, row["weight"]);
+					csv.push({
+						location: new google.maps.LatLng(row["lat"], row["lon"]),
+						weight: row["weight"]
+					});
+				}
+				$("#max-label").html("intencity: "+numberWithCommas(max));
+				$("#max-slider").slider("option","max",max);
+				$("#max-slider").slider("option","value",max);
+			}
+			console.log(results);
+			loadHeatmap(csv);
+		}
+	});
 }
+
 
 function processReceiverUpdate(data) {
 	// Loop through all the planes in the data packet
@@ -346,6 +347,10 @@ function end_load_history() {
         window.setInterval(fetchData, RefreshInterval);
         window.setInterval(reaper, 60000);
 
+        if (SitePosition) refreshCircles(myMarker);
+        refresh_colored_altitude_zones();
+
+
         // And kick off one refresh immediately.
         fetchData();
 
@@ -478,7 +483,7 @@ function initialize_map() {
 	}));
 
 	GoogleMap.mapTypes.set("dark_map", styledMap);
-	
+
 	// Listeners for newly created Map
         google.maps.event.addListener(GoogleMap, 'center_changed', function() {
                 localStorage['CenterLat'] = GoogleMap.getCenter().lat();
@@ -513,13 +518,8 @@ function initialize_map() {
           zIndex: -99999
         });
         
-        if (SiteCircles) {
-            for (var i=0;i<SiteCirclesDistances.length;i++) {
-              drawCircle(marker, SiteCirclesDistances[i]); // in meters
-            }
-        }
 	}
-	
+
 	//Add User Map layer if requested
         if (UserMapShow) {
                 UserKML = new google.maps.KmlLayer({
@@ -528,69 +528,101 @@ function initialize_map() {
                         preserveViewport: true
                 });
         }
+	
+	myMarker = marker;
 }
 
-// This loads the  heatmap with the radius and opacity
+//This refreshes the heatmap layer
 function loadHeatmap(csv) {
-        var pointArray = new google.maps.MVCArray(csv);
-        if(heatmap) heatmap.setMap(null);
-        heatmap = new google.maps.visualization.HeatmapLayer({
-                data: pointArray,
-                radius: $("#radius-slider").slider("value"),
-                opacity: $("#opacity-slider").slider("value")
-        });
-        heatmap.setMap(GoogleMap);
+	var pointArray = new google.maps.MVCArray(csv);
+	if (heatmap) heatmap.setMap(null);
+	if (HeatmapShow) {
+		heatmap = new google.maps.visualization.HeatmapLayer({
+			data: pointArray,
+			radius: $("#radius-slider").slider("value"),
+			opacity: $("#opacity-slider").slider("value")
+		});
+		heatmap.setMap(GoogleMap);
+	}
 }
 
-// This takes action of centain events.
+//This refreshes the KML layer
+function loadKMLmap() {
+	if (UserMapShow) {
+		UserKML = new google.maps.KmlLayer({
+                        url: UserMap,
+                        map: GoogleMap,
+                        preserveViewport: true
+                });
+	} else {
+		UserKML.setMap(null);
+	}
+}
+
 $(document).ready(function(){
-        $("#csv-file").change(handleFileSelect);
-        google.maps.event.addDomListener(window, 'load', initialize_map);
-        $(function() {
-                $( "#draggable-panel" ).draggable();
-        });
+	$("#csv-file").change(handleFileSelect);
+	google.maps.event.addDomListener(window, 'load', initialize_map);
 	$(function() {
-                $( "#draggable-legend" ).draggable();
+		$( "#draggable-panel" ).draggable();
+	});
+	$(function() {
+                $( "#draggable-altitude-legend" ).draggable();
         });
         $(function() {
-                $( "#radius-slider" ).slider({
-                        orientation: "horizontal",
-                        range: "min",
-                        min: 1,
-                        max: 50,
-                        value: 6,
-                        slide: function(event, ui) {
-                                $("#radius-label").html("radius: " + ui.value);
-                                if(heatmap == null) return;
-                                        heatmap.set('radius', ui.value);
-                        }
-                });
-                $( "#opacity-slider" ).slider({
-                        orientation: "horizontal",
-                        range: "min",
-                        min: 0,
-                        max: 100,
-                        value: 50,
-                        slide: function(event, ui) {
-                                $("#opacity-label").html("opacity: " + ui.value/100);
-                                if(heatmap == null) return;
-                                heatmap.set('opacity', ui.value/100);
-                        }
-                });
-                $( "#max-slider" ).slider({
-                        orientation: "horizontal",
-                        range: "min",
-                        min: 0,
-                        max: 1,
-                        value: 0,
-                        slide: function(event, ui) {
-                                $("#max-label").html("intencity: " + numberWithCommas(ui.value));
-                                if(heatmap == null) return;
-                                heatmap.set('maxIntensity', ui.value);
-                        }
-                });
+                $( "#draggable-range-legend" ).draggable();
         });
+
+	$(function() {
+		$( "#radius-slider" ).slider({
+			orientation: "horizontal",
+			range: "min",
+			min: 1,
+			max: 50,
+			value: 6,
+			slide: function(event, ui) {
+				$("#radius-label").html("radius: " + ui.value);
+				if(heatmap == null) return;
+					heatmap.set('radius', ui.value);
+			}
+		});
+		$( "#opacity-slider" ).slider({
+			orientation: "horizontal",
+			range: "min",
+			min: 0,
+			max: 100,
+			value: 50,
+			slide: function(event, ui) {
+				$("#opacity-label").html("opacity: " + ui.value/100);
+				if(heatmap == null) return;
+				heatmap.set('opacity', ui.value/100);
+			}
+		});
+		$( "#max-slider" ).slider({
+			orientation: "horizontal",
+			range: "min",
+			min: 0,
+			max: 1,
+			value: 0,
+			slide: function(event, ui) {
+				$("#max-label").html("intencity: " + numberWithCommas(ui.value));
+				if(heatmap == null) return;
+				heatmap.set('maxIntensity', ui.value);
+			}
+		});
+	});
 });
+
+// This turns on and off the heatmap
+function toggleHeatmap() {
+    HeatmapShow = !HeatmapShow;
+    loadHeatmap(csv);
+}
+
+// This turns on or off the KML range map
+function toggleRange() {
+    UserMapShow = !UserMapShow;
+    loadKMLmap();
+}
 
 
 // This looks for planes to reap out of the master Planes variable
@@ -953,7 +985,7 @@ function resetMap() {
 	selectPlaneByHex(null,false);
 }
 
-function drawCircle(marker, distance) {
+function drawCircle(marker, distance, strkweight, strkcolor) {
     if (typeof distance === 'undefined') {
         return false;
         
@@ -972,8 +1004,10 @@ function drawCircle(marker, distance) {
       map: GoogleMap,
       radius: distance, // In meters
       fillOpacity: 0.0,
-      strokeWeight: 1,
+      strokeWeight: strkweight,
+      strokeColor: strkcolor,
       strokeOpacity: 0.3
     });
     circle.bindTo('center', marker, 'position');
+    return circle;
 }
