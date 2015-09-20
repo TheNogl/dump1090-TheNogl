@@ -90,9 +90,10 @@ ColorByAlt = {
 
 //User Map (KML File)
 //Enables KML overlay on map, UserMap must have a value below when "true"
-UserMapShow = false;            //true to show KML
+UserMapShow = true;            //true to show KML
 //KML to show: 
-UserMap     = "";               //URL (publicly available domain)
+UserMap     = "https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/radar.kml";  //URL (publicly available domain)
+//demo URL = https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/radar.kml (area the netherlands)
 
 SiteCircles = true; // true to show circles (only shown if the center marker is shown)
 // In nautical miles or km (depending settings value 'Metric')
