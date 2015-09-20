@@ -189,6 +189,12 @@ PlaneObject.prototype.getMarkerColor = function() {
         if (this.squawk in SpecialSquawks)
                 return SpecialSquawks[this.squawk].markerColor;
 
+        if (!ShowAltitudesByColor)
+                if (this.position_from_mlat)
+                        return "#8080ff";
+                else
+                        return "#80ff80";
+
         var h, s, l;
 
         if (this.altitude === null) {
