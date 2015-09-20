@@ -88,6 +88,11 @@ ColorByAlt = {
 //         stale :    { h: 0, s: 0, l: +30 }
 // };
 
+//User Map (KML File)
+//Enables KML overlay on map, UserMap must have a value below when "true"
+UserMapShow = false;            //true to show KML
+//KML to show: 
+UserMap     = "";               //URL (publicly available domain)
 
 SiteCircles = true; // true to show circles (only shown if the center marker is shown)
 // In nautical miles or km (depending settings value 'Metric')

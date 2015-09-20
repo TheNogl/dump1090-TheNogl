@@ -519,6 +519,15 @@ function initialize_map() {
             }
         }
 	}
+	
+	//Add User Map layer if requested
+        if (UserMapShow) {
+                UserKML = new google.maps.KmlLayer({
+                        url: UserMap,
+                        map: GoogleMap,
+                        preserveViewport: true
+                });
+        }
 }
 
 // This loads the  heatmap with the radius and opacity
