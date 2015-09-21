@@ -45,9 +45,13 @@ UserMapShow = true;            //true to show KML
 // KML to show: 
 UserMap     = "https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/radar.kml";  // your KML URL (publicly available domain)
 
-// User heatmap
+// User heatmap (csv File)
 // Enables Heatmap on map
 HeatmapShow = true;            //true to show Heatmap
+// heatmap to show:
+UserHeatMap = "heatmapdata.csv"// Must be located in /usr/share/dump1090-mutability/html
+// Enables file selector to upload a local heatmap.
+HeatmapFileSelector = true;    //true to show file selector in heatmap panel.
 
 // -- Marker settings -------------------------------------
 
