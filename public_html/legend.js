@@ -108,6 +108,12 @@ function refresh_range_legend() {
 
 function toggleRings() {
     ShowSiteCircles = !ShowSiteCircles;
+    var e = document.getElementById("draggable-range-legend");
+    if (ShowSiteCircles) {
+         e.style.display = 'block';
+    } else {
+         e.style.display = 'none';
+    }
     if (SitePosition) refreshCircles(myMarker);
 }
 
