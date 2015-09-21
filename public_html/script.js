@@ -11,6 +11,7 @@ var UserKML	  = null;
 var pointarray;
 var heatmap;
 var csv = [];
+var heatmapfile;
 
 var SpecialSquawks = {
         '7500' : { cssClass: 'squawk7500', markerColor: 'rgb(255, 85, 85)', text: 'Aircraft Hijacking' },
@@ -50,8 +51,8 @@ function numberWithCommas(x) {
 
 // This opens a csv heatmap file and parse it to weight, lat and lon data.
 function handleFileSelect(evt) {
-	var file = evt.target.files[0];
-	Papa.parse(file, {
+	heatmapfile = evt.target.files[0];
+	Papa.parse(heatmapfile, {
 		quotes: true,
 		delimiter: ";",
 		header: true,
@@ -59,31 +60,23 @@ function handleFileSelect(evt) {
 		complete: function(results) {
 			var idx;
 			csv = [];
-			if(results.meta.fields.indexOf("weight") == -1) {
-				for(idx in results["data"]) {
-					var row = results["data"][idx];
-					csv.push(new google.maps.LatLng(row["lat"], row["lon"]))
-				}
-			} else {
-				var max = results["data"][0]["weight"];
-				for(idx in results["data"]) {
-					var row = results["data"][idx];
-					max = Math.max(max, row["weight"]);
-					csv.push({
-						location: new google.maps.LatLng(row["lat"], row["lon"]),
-						weight: row["weight"]
-					});
-				}
-				$("#max-label").html("intencity: "+numberWithCommas(max));
-				$("#max-slider").slider("option","max",max);
-				$("#max-slider").slider("option","value",max);
+			var max = results["data"][0]["weight"];
+			for(idx in results["data"]) {
+				var row = results["data"][idx];
+				max = Math.max(max, row["weight"]);
+				csv.push({
+					location: new google.maps.LatLng(row["lat"], row["lon"]),
+					weight: row["weight"]
+				});
 			}
+			$("#max-label").html("intencity: "+numberWithCommas(max));
+			$("#max-slider").slider("option","max",max);
+			$("#max-slider").slider("option","value",max);
 			console.log(results);
 			loadHeatmap(csv);
 		}
 	});
 }
-
 
 function processReceiverUpdate(data) {
 	// Loop through all the planes in the data packet
@@ -528,8 +521,54 @@ function initialize_map() {
                         preserveViewport: true
                 });
         }
+
+	InitHeatmap();
 	
 	myMarker = marker;
+}
+
+// Read heatmap from server
+function InitHeatmap() {
+        var e = document.getElementById("csv-file");
+        if (HeatmapFileSelector) {
+                e.style.display = 'block';
+        } else {
+                e.style.display = 'none';
+        }
+        var e = document.getElementById("draggable-panel");
+        if (HeatmapShow) {
+                e.style.display = 'block';
+                if (!heatmapfile) {
+                        heatmapfile = UserHeatMap;
+                        Papa.parse(heatmapfile, {
+                                download: true,
+                                quotes: true,
+                                delimiter: ";",
+                                header: true,
+                                dynamicTyping: true,
+                                complete: function(results) {
+                                        var idx;
+                                        csv = [];
+                                        var max = results["data"][0]["weight"];
+                                        for(idx in results["data"]) {
+                                                var row = results["data"][idx];
+                                                max = Math.max(max, row["weight"]);
+                                                csv.push({
+                                                        location: new google.maps.LatLng(row["lat"], row["lon"]),
+                                                        weight: row["weight"]
+                                                });
+                                        }
+                                        $("#max-label").html("intensity: "+numberWithCommas(max));
+                                        $("#max-slider").slider("option","max",max);
+                                        $("#max-slider").slider("option","value",max);
+                                        console.log(results);
+                                        loadHeatmap(csv);
+                                }
+                        });
+                }
+        } else {
+                e.style.display = 'none';
+        }
 }
 
 //This refreshes the heatmap layer
@@ -615,6 +654,7 @@ $(document).ready(function(){
 // This turns on and off the heatmap
 function toggleHeatmap() {
     HeatmapShow = !HeatmapShow;
+    InitHeatmap();
     loadHeatmap(csv);
 }
 
@@ -623,7 +663,6 @@ function toggleRange() {
     UserMapShow = !UserMapShow;
     loadKMLmap();
 }
-
 
 // This looks for planes to reap out of the master Planes variable
 function reaper() {
