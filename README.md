@@ -1,8 +1,7 @@
-# dump1090-mutability Debian/Raspbian packages 
-# with heatmap & rangeview
+# Dump1090-mutability Debian/Raspbian packages with heatmap & rangeview
 [![Build Status](https://travis-ci.org/mutability/dump1090.svg?branch=master)](https://travis-ci.org/mutability/dump1090)
 
-Dump1090-mutability is a fork of MalcolmRobb's version of dump1090
+[Dump1090-mutability](https://github.com/mutability/dump1090) is a fork of [MalcolmRobb's version of dump1090](https://github.com/MalcolmRobb/dump1090)
 that adds new functionality and is designed to be built as
 a Debian/Raspbian package.
 This fork adds a heatmap and rangeview to it.
@@ -59,7 +58,7 @@ Then you will need the dump1090-mutability package itself from
 Install the packages with dpkg.
 
 Step by step installation instructions available at
-[this page](http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html)
+[http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html](http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html)
 
 # Configuration
 
