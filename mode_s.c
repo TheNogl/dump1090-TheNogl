@@ -719,21 +719,30 @@ static void decodeExtendedSquitter(struct modesMessage *mm)
             break;
 
         case 1: //   Reserved for ADS-B for ES/NT devices that use other addressing techniques in the AA field
-        case 5: //   TIS-B messages that relay ADS-B Messages using anonymous 24-bit addresses (format not explicitly defined, but it seems to follow DF17)
             mm->addr |= MODES_NON_ICAO_ADDRESS;
             break;
 
         case 2: //   Fine TIS-B message (formats are close enough to DF17 for our purposes)
-        case 6: //   ADS-B rebroadcast using the same type codes and message formats as defined for DF = 17 ADS-B messages
+            mm->bFlags |= MODES_ACFLAGS_FROM_TISB;
             check_imf = 1;
             break;
 
         case 3: //   Coarse TIS-B airborne position and velocity.
             // TODO: decode me.
             // For now we only look at the IMF bit.
+            mm->bFlags |= MODES_ACFLAGS_FROM_TISB;
             if (msg[4] & 0x80)
                 mm->addr |= MODES_NON_ICAO_ADDRESS;
             return;
+
+        case 5: //   TIS-B messages that relay ADS-B Messages using anonymous 24-bit addresses (format not explicitly defined, but it seems to follow DF17)
+            mm->bFlags |= MODES_ACFLAGS_FROM_TISB;
+            mm->addr |= MODES_NON_ICAO_ADDRESS;
+            break;
+
+        case 6: //   ADS-B rebroadcast using the same type codes and message formats as defined for DF = 17 ADS-B messages
+            check_imf = 1;
+            break;
 
         default:    // All others, we don't know the format.
             mm->addr |= MODES_NON_ICAO_ADDRESS; // assume non-ICAO
@@ -846,6 +855,11 @@ static void decodeExtendedSquitter(struct modesMessage *mm)
             }
         }
 
+        if (msg[10] != 0) {
+            mm->bFlags |= MODES_ACFLAGS_HAE_DELTA_VALID;
+            mm->hae_delta = ((msg[10] & 0x80) ? -25 : 25) * ((msg[10] & 0x7f) - 1);
+        }
+
         break;
     }
         
@@ -910,9 +924,18 @@ static void decodeExtendedSquitter(struct modesMessage *mm)
         }
 
         if (AC12Field) {// Only attempt to decode if a valid (non zero) altitude is present
-            mm->altitude = decodeAC12Field(AC12Field, &mm->unit);
-            if (mm->altitude != INVALID_ALTITUDE)
-                mm->bFlags  |= MODES_ACFLAGS_ALTITUDE_VALID;
+            if (metype == 20 || metype == 21 || metype == 22) {
+                // Position reported as HAE
+                mm->altitude_hae = decodeAC12Field(AC12Field, &mm->unit);
+                if (mm->altitude_hae != INVALID_ALTITUDE) {
+                    mm->bFlags  |= MODES_ACFLAGS_ALTITUDE_HAE_VALID;
+                }
+            } else {
+                mm->altitude = decodeAC12Field(AC12Field, &mm->unit);
+                if (mm->altitude != INVALID_ALTITUDE) {
+                    mm->bFlags  |= MODES_ACFLAGS_ALTITUDE_VALID;
+                }
+            }
         }
 
         if (metype == 0 || metype == 18 || metype == 22)
@@ -1011,15 +1034,22 @@ static void displayExtendedSquitter(struct modesMessage *mm) {
             printf("    Vertical status   : %s\n", (mm->bFlags & MODES_ACFLAGS_VERTRATE_VALID) ? "Valid" : "Unavailable");
             printf("    Vertical rate src : %d\n", ((mm->msg[8] >> 4) & 1));
             printf("    Vertical rate     : %d\n", mm->vert_rate);
-            
         } else {
             printf("    Unrecognized ME subtype: %d subtype: %d\n", mm->metype, mm->mesub);
+        }
+
+        if (mm->bFlags & MODES_ACFLAGS_HAE_DELTA_VALID) {
+            printf("    HAE/Baro offset   : %d ft\n", mm->hae_delta);
+        } else {
+            printf("    HAE/Baro offset   : not valid\n");
         }
     } else if (mm->metype >= 5 && mm->metype <= 22) { // Airborne position Baro
         printf("    F flag   : %s\n", (mm->msg[6] & 0x04) ? "odd" : "even");
         printf("    T flag   : %s\n", (mm->msg[6] & 0x08) ? "UTC" : "non-UTC");
         if (mm->bFlags & MODES_ACFLAGS_ALTITUDE_VALID)
-            printf("    Altitude : %d feet\n", mm->altitude);
+            printf("    Altitude : %d feet barometric\n", mm->altitude);
+        else if (mm->bFlags & MODES_ACFLAGS_ALTITUDE_HAE_VALID)
+            printf("    Altitude : %d feet HAE\n", mm->altitude_hae);
         else
             printf("    Altitude : not valid\n");
         if (mm->bFlags & MODES_ACFLAGS_LATLON_VALID) {
@@ -1174,12 +1204,12 @@ void displayModesMessage(struct modesMessage *mm) {
     } else if (mm->msgtype == 18) { // DF 18 
         printf("DF 18: Extended Squitter.\n");
         printf("  Control Field : %d (%s)\n", mm->cf, cf_str[mm->cf]);
-        if ((mm->cf == 0) || (mm->cf == 1) || (mm->cf == 5) || (mm->cf == 6)) {
-            if (mm->cf == 1 || mm->cf == 5) {
-                printf("  Other Address : %06x\n", mm->addr);
-            } else {
-                printf("  ICAO Address  : %06x\n", mm->addr);
-            }
+        if (mm->addr & MODES_NON_ICAO_ADDRESS) {
+            printf("  Other Address : %06x\n", mm->addr);
+        } else {
+            printf("  ICAO Address  : %06x\n", mm->addr);
+        }
+        if ((mm->cf == 0) || (mm->cf == 1) || (mm->cf == 2) || (mm->cf == 5) || (mm->cf == 6)) {
             displayExtendedSquitter(mm);
         }             
 
@@ -1207,6 +1237,7 @@ void displayModesMessage(struct modesMessage *mm) {
     }
 
     printf("\n");
+    fflush(stdout);
 }
 
 //
@@ -1240,15 +1271,15 @@ void useModesMessage(struct modesMessage *mm) {
     if (Modes.net) {
         if (Modes.net_verbatim || mm->msgtype == 32) {
             // Unconditionally send
-            modesQueueOutput(mm);
+            modesQueueOutput(mm, a);
         } else if (a->messages > 1) {
             // If this is the second message, and we
             // squelched the first message, then re-emit the
             // first message now.
             if (!Modes.net_verbatim && a->messages == 2) {
-                modesQueueOutput(&a->first_message);
+                modesQueueOutput(&a->first_message, a);
             }
-            modesQueueOutput(mm);
+            modesQueueOutput(mm, a);
         }
     }
 }

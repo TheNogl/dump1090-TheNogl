@@ -163,6 +163,9 @@ typedef struct rtlsdr_dev rtlsdr_dev_t;
 #define MODES_ACFLAGS_REL_CPR_USED   (1<<16) // Lat/lon derived from relative CPR
 #define MODES_ACFLAGS_CATEGORY_VALID (1<<17) // Aircraft category is known
 #define MODES_ACFLAGS_FROM_MLAT      (1<<18) // Data was derived from multilateration
+#define MODES_ACFLAGS_ALTITUDE_HAE_VALID (1<<19) // altitude_hae is valid
+#define MODES_ACFLAGS_HAE_DELTA_VALID    (1<<20) // hae_delta is valid
+#define MODES_ACFLAGS_FROM_TISB      (1<<21) // Data was derived from TIS-B messages
 
 #define MODES_ACFLAGS_LLEITHER_VALID (MODES_ACFLAGS_LLEVEN_VALID | MODES_ACFLAGS_LLODD_VALID)
 #define MODES_ACFLAGS_LLBOTH_VALID   (MODES_ACFLAGS_LLEVEN_VALID | MODES_ACFLAGS_LLODD_VALID)
@@ -188,14 +191,6 @@ typedef struct rtlsdr_dev rtlsdr_dev_t;
 
 #define MODES_NET_HEARTBEAT_INTERVAL 60000      // milliseconds
 
-#define MODES_NET_SERVICES_NUM          7
-#define MODES_NET_INPUT_RAW_PORT    30001
-#define MODES_NET_OUTPUT_RAW_PORT   30002
-#define MODES_NET_OUTPUT_SBS_PORT   30003
-#define MODES_NET_INPUT_BEAST_PORT  30004
-#define MODES_NET_OUTPUT_BEAST_PORT 30005
-#define MODES_NET_HTTP_PORT          8080
-#define MODES_NET_OUTPUT_FA_TSV_PORT 10001
 #define MODES_CLIENT_BUF_SIZE  1024
 #define MODES_NET_SNDBUF_SIZE (1024*64)
 #define MODES_NET_SNDBUF_MAX  (7)
@@ -293,22 +288,20 @@ struct {                             // Internal state
     int   nfix_crc;                  // Number of crc bit error(s) to correct
     int   check_crc;                 // Only display messages with good CRC
     int   raw;                       // Raw output format
-    int   beast;                     // Beast binary format output
     int   mode_ac;                   // Enable decoding of SSR Modes A & C
     int   debug;                     // Debugging mode
     int   net;                       // Enable networking
     int   net_only;                  // Enable just networking
     uint64_t net_heartbeat_interval; // TCP heartbeat interval (milliseconds)
-    int   net_output_sbs_port;       // SBS output TCP port
     int   net_output_flush_size;     // Minimum Size of output data
     uint64_t net_output_flush_interval; // Maximum interval (in milliseconds) between outputwrites
-    int   net_output_raw_port;       // Raw output TCP port
-    int   net_input_raw_port;        // Raw input TCP port
-    int   net_output_beast_port;     // Beast output TCP port
-    int   net_input_beast_port;      // Beast input TCP port
-    char  *net_bind_address;         // Bind address
-    int   net_http_port;             // HTTP port
-    int   net_fatsv_port;            // FlightAware TSV port
+    char *net_output_raw_ports;      // List of raw output TCP ports
+    char *net_input_raw_ports;       // List of raw input TCP ports
+    char *net_output_sbs_ports;      // List of SBS output TCP ports
+    char *net_input_beast_ports;     // List of Beast input TCP ports
+    char *net_output_beast_ports;    // List of Beast output TCP ports
+    char *net_http_ports;            // List of HTTP ports
+    char *net_bind_address;          // Bind address
     int   net_sndbuf_size;           // TCP output buffer size (64Kb * 2^n)
     int   net_verbatim;              // if true, send the original message, not the CRC-corrected one
     int   forward_mlat;              // allow forwarding of mlat messages to output ports
@@ -321,6 +314,7 @@ struct {                             // Internal state
     int   stats_range_histo;         // Collect/show a range histogram?
     int   onlyaddr;                  // Print only ICAO addresses
     int   metric;                    // Use metric units
+    int   use_hae;                   // Use HAE altitudes with H suffix when available
     int   mlat;                      // Use Beast ascii format for raw data output, i.e. @...; iso *...;
     int   interactive_rtl1090;       // flight table in interactive mode is formatted like RTL1090
     char *json_dir;                  // Path to json base directory, or NULL not to write json.
@@ -389,6 +383,8 @@ struct modesMessage {
     int    vert_rate;           // Vertical rate.
     int    velocity;            // Reported by aircraft, or computed from from EW and NS velocity
     unsigned category;          // A0 - D7 encoded as a single hex byte
+    int    altitude_hae;        // altitude reported as GNSS HAE
+    int    hae_delta;           // difference between HAE and baro alt
 
     // DF 18
     int    cf;                  // Control Field

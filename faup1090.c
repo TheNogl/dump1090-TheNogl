@@ -63,7 +63,7 @@ static void faupInitConfig(void) {
     Modes.check_crc               = 1;
     Modes.net                     = 1;
     Modes.net_heartbeat_interval  = MODES_NET_HEARTBEAT_INTERVAL;
-    Modes.maxRange                = 1852 * 300; // 300NM default max range
+    Modes.maxRange                = 1852 * 360; // 360NM default max range; this also disables receiver-relative positions
     Modes.quiet                   = 1;
     Modes.net_output_flush_size   = MODES_OUT_FLUSH_SIZE;
     Modes.net_output_flush_interval = 200; // milliseconds
@@ -111,7 +111,7 @@ static void showHelp(void) {
 "--net-fatsv-port <port>  FlightAware TSV output port (default: 10001)\n"
 "--lat <latitude>         Reference/receiver latitude for surface posn (opt)\n"
 "--lon <longitude>        Reference/receiver longitude for surface posn (opt)\n"
-"--max-range <distance>   Absolute maximum range for position decoding (in nm, default: 300)\n"
+"--max-range <distance>   Absolute maximum range for position decoding (in nm, default: 360)\n"
 "--stdout                 REQUIRED. Write results to stdout.\n"
 "--help                   Show this help\n"
 "\n",
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
     int j;
     int stdout_option = 0;
     char *bo_connect_ipaddr = "127.0.0.1";
-    int bo_connect_port = MODES_NET_OUTPUT_BEAST_PORT;
+    int bo_connect_port = 30005;
     struct client *c;
     struct net_service *beast_input, *fatsv_output;
 

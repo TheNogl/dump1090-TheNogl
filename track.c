@@ -252,10 +252,6 @@ static int doGlobalCPR(struct aircraft *a, struct modesMessage *mm, uint64_t now
         return result;
     }
 
-    // for mlat results, accept it unquestioningly
-    if (mm->bFlags & MODES_ACFLAGS_FROM_MLAT)
-        return result;
-
     // check max range
     if (Modes.maxRange > 0 && (Modes.bUserFlags & MODES_USER_LATLON_VALID)) {
         double range = greatcircle(Modes.fUserLat, Modes.fUserLon, *lat, *lon);
@@ -269,6 +265,10 @@ static int doGlobalCPR(struct aircraft *a, struct modesMessage *mm, uint64_t now
             return (-2); // we consider an out-of-range value to be bad data
         }
     }
+
+    // for mlat results, skip the speed check
+    if (mm->bFlags & MODES_ACFLAGS_FROM_MLAT)
+        return result;
 
     // check speed limit
     if ((a->bFlags & MODES_ACFLAGS_LATLON_VALID) && a->pos_nuc >= *nuc && !speed_check(a, mm, *lat, *lon, now, surface)) {
@@ -312,7 +312,7 @@ static int doLocalCPR(struct aircraft *a, struct modesMessage *mm, uint64_t now,
 
         if (Modes.maxRange <= 1852*180) {
             range_limit = Modes.maxRange;
-        } else if (Modes.maxRange <= 1852*360) {
+        } else if (Modes.maxRange < 1852*360) {
             range_limit = (1852*360) - Modes.maxRange;
         } else {
             return (-1); // Can't do receiver-centered checks at all
@@ -522,7 +522,32 @@ struct aircraft *trackUpdateFromMessage(struct modesMessage *mm)
             a->altitude = mm->altitude;
             a->modeC    = (mm->altitude + 49) / 100;
             a->seenAltitude = now;
+
+            // reporting of HAE and baro altitudes is mutually exclusive
+            // so if we see a baro altitude, assume the HAE altitude is invalid
+            // we will recalculate it from baro + HAE delta below, where possible
+            a->bFlags &= ~MODES_ACFLAGS_ALTITUDE_HAE_VALID;
         }
+    }
+
+    // If a (new) HAE altitude has been received, copy it to the aircraft structure
+    if (mm->bFlags & MODES_ACFLAGS_ALTITUDE_HAE_VALID) {
+        a->altitude_hae = mm->altitude_hae;
+
+        // reporting of HAE and baro altitudes is mutually exclusive
+        // if you have both, you're meant to report baro and a HAE delta,
+        // so if we see explicit HAE then assume the delta is invalid too
+        a->bFlags &= ~(MODES_ACFLAGS_ALTITUDE_VALID | MODES_ACFLAGS_HAE_DELTA_VALID);
+    }
+
+    // If a (new) HAE/barometric difference has been received, copy it to the aircraft structure
+    if (mm->bFlags & MODES_ACFLAGS_HAE_DELTA_VALID) {
+        a->hae_delta = mm->hae_delta;
+
+        // reporting of HAE and baro altitudes is mutually exclusive
+        // if you have both, you're meant to report baro and a HAE delta,
+        // so if we see a HAE delta then assume the HAE altitude is invalid
+        a->bFlags &= ~MODES_ACFLAGS_ALTITUDE_HAE_VALID;
     }
 
     // If a (new) SQUAWK has been received, copy it to the aircraft structure
@@ -559,12 +584,24 @@ struct aircraft *trackUpdateFromMessage(struct modesMessage *mm)
     // Update the aircrafts a->bFlags to reflect the newly received mm->bFlags;
     a->bFlags |= mm->bFlags;
 
+    // If we have a baro altitude and a HAE delta from baro, calculate the HAE altitude
+    if ((a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) && (a->bFlags & MODES_ACFLAGS_HAE_DELTA_VALID)) {
+        a->altitude_hae = a->altitude + a->hae_delta;
+        a->bFlags |= MODES_ACFLAGS_ALTITUDE_HAE_VALID;
+    }
+
     // Update mlat flags. The mlat flags indicate which bits in bFlags
     // were last set based on a mlat-derived message.
     if (mm->bFlags & MODES_ACFLAGS_FROM_MLAT)
         a->mlatFlags = (a->mlatFlags & a->bFlags) | mm->bFlags;
     else
         a->mlatFlags = (a->mlatFlags & a->bFlags) & ~mm->bFlags;
+
+    // Same for TIS-B
+    if (mm->bFlags & MODES_ACFLAGS_FROM_TISB)
+        a->tisbFlags = (a->tisbFlags & a->bFlags) | mm->bFlags;
+    else
+        a->tisbFlags = (a->tisbFlags & a->bFlags) & ~mm->bFlags;
 
     if (mm->msgtype == 32) {
         int flags = a->modeACflags;

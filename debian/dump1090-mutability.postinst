@@ -19,19 +19,23 @@ set -e
 
 NAME=dump1090-mutability
 CONFIGFILE=/etc/default/$NAME
+SRCCONFIGFILE=$CONFIGFILE
 TEMPLATECONFIG=/usr/share/$NAME/config-template
 CRONFILE=/etc/cron.d/$NAME
 TEMPLATECRON=/usr/share/$NAME/cron-template
 SEDSCRIPT=$CONFIGFILE.sed.tmp
 
 subvar_raw() {
-  # $1 = db var value
+  # $1 = config value
   # $2 = config var name
 
-  # if not present in the config file, add it
-  test -z "$1" || grep -Eq "^ *$2=" $CONFIGFILE || echo "$2=" >> $CONFIGFILE
-  # add to the sedscript
-  echo "s@^ *$2=.*@$2=\"$1\"@" >>$SEDSCRIPT
+  if ! grep -Eq "^ *$2=" $SRCCONFIGFILE; then
+    # if not present in the config file, add it at the end
+    echo "\$a $2=$1" >> $SEDSCRIPT
+  else
+    # otherwise, replace the current value
+    echo "s@^ *$2=.*@$2=\"$1\"@" >>$SEDSCRIPT
+  fi
 }
 
 subvar() {
@@ -52,9 +56,15 @@ case "$1" in
     configure)
         . /usr/share/debconf/confmodule
 
-        # Generate config file, if it doesn't exist.
-        if [ ! -e $CONFIGFILE ]; then
-            tail -n +4 $TEMPLATECONFIG >$CONFIGFILE
+        # If we have no config file, start from the template.
+        # Avoid copying the template to the config file
+        # before substitution; this leaves an all-blank config
+        # in place if something fails, which causes problems
+        # on subsequent reconfiguration.
+        SKIPLINES=0
+        if [ ! -e $SRCCONFIGFILE ]; then
+            SRCCONFIGFILE=$TEMPLATECONFIG
+            SKIPLINES=4
         fi
 
         rm -f $SEDSCRIPT
@@ -68,7 +78,6 @@ case "$1" in
         subvar_yn rtlsdr-oversample OVERSAMPLE
         subvar_yn decode-fixcrc FIX_CRC
         subvar_yn decode-phase-enhance PHASE_ENHANCE
-        subvar_yn decode-aggressive AGGRESSIVE
         subvar decode-lat LAT
         subvar decode-lon LON
         subvar decode-max-range MAX_RANGE
@@ -78,7 +87,6 @@ case "$1" in
         subvar net-bi-port BEAST_INPUT_PORT
         subvar net-bo-port BEAST_OUTPUT_PORT
         subvar net-sbs-port SBS_OUTPUT_PORT
-        subvar net-fatsv-port FATSV_OUTPUT_PORT
         subvar net-heartbeat NET_HEARTBEAT
         subvar net-out-size NET_OUTPUT_SIZE
         subvar net-out-interval NET_OUTPUT_INTERVAL
@@ -91,8 +99,11 @@ case "$1" in
         subvar_yn log-decoded-messages LOG_DECODED_MESSAGES
         subvar extra-args EXTRA_ARGS
 
-        cp -a -f $CONFIGFILE $CONFIGFILE.tmp
-        sed -f $SEDSCRIPT < $CONFIGFILE > $CONFIGFILE.tmp
+        tail -n +$SKIPLINES < $SRCCONFIGFILE | sed -f $SEDSCRIPT > $CONFIGFILE.tmp
+        if [ -e $CONFIGFILE ]; then
+            chown --reference=$CONFIGFILE $CONFIGFILE.tmp
+            chmod --reference=$CONFIGFILE $CONFIGFILE.tmp
+        fi
         mv -f $CONFIGFILE.tmp $CONFIGFILE
         rm $SEDSCRIPT
 
@@ -108,26 +119,11 @@ case "$1" in
         touch $RET
         chown $RUNAS $RET
 
-        # create cronjob
-        if ! test -e $CRONFILE; then
-            echo "Creating cronjob in $CRONFILE to periodically update the aircraft database.." >&2
-            MIN=$(($RANDOM % 60))
-            tail -n +4 $TEMPLATECRON | sed -e "s/@USER@/$RUNAS/g" -e "s/@MIN@/$MIN/g" >$CRONFILE
-        fi
-
-        # update the DB
-        echo "Updating aircraft database now.."
-        mkdir -m 0755 -p /var/cache/$NAME
-        chown $RUNAS /var/cache/$NAME
-        su $RUNAS -s /bin/bash -c /usr/share/$NAME/update-aircraft-database.sh || \
-          echo "Aircraft database update failed. It will be retried periodically from cron." >&2
-
-        # config file changed between 1.14 and 1.15
+        # this config file has changed a few times, restart lighttpd to make sure we
+        # have the latest version
         if [ -e /etc/lighttpd/conf-enabled/89-dump1090.conf ]; then
-            if dpkg --compare-versions "$2" le "1.14"; then
-                echo "Restarting lighttpd.." >&2
-                invoke-rc.d lighttpd restart || echo "Warning: lighttpd failed to restart." >&2
-            fi
+            echo "Restarting lighttpd.." >&2
+            invoke-rc.d lighttpd restart || echo "Warning: lighttpd failed to restart." >&2
         fi
     ;;
 

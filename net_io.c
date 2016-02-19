@@ -96,7 +96,7 @@ struct net_service *serviceInit(const char *descr, struct net_writer *writer, he
     Modes.services = service;
 
     service->descr = descr;
-    service->listen_fd = -1;
+    service->listener_count = 0;
     service->connections = 0;
     service->writer = writer;
     service->read_sep = sep;
@@ -154,7 +154,12 @@ struct client *createGenericClient(struct net_service *service, int fd)
 // Return the new client or NULL if the connection failed
 struct client *serviceConnect(struct net_service *service, char *addr, int port)
 {
-    int s = anetTcpConnect(Modes.aneterr, addr, port);
+    int s;
+    char buf[20];
+
+    // Bleh.
+    snprintf(buf, 20, "%d", port);
+    s = anetTcpConnect(Modes.aneterr, addr, buf);
     if (s == ANET_ERR)
         return NULL;
 
@@ -163,24 +168,61 @@ struct client *serviceConnect(struct net_service *service, char *addr, int port)
 
 // Set up the given service to listen on an address/port.
 // _exits_ on failure!
-void serviceListen(struct net_service *service, char *bind_addr, int bind_port)
+void serviceListen(struct net_service *service, char *bind_addr, char *bind_ports)
 {
-    int s;
+    int *fds = NULL;
+    int n = 0;
+    char *p, *end;
+    char buf[128];
 
-    if (service->listen_fd >= 0) {
+    if (service->listener_count > 0) {
         fprintf(stderr, "Tried to set up the service %s twice!\n", service->descr);
         exit(1);
     }
 
-    s = anetTcpServer(Modes.aneterr, bind_port, bind_addr);
-    if (s == ANET_ERR) {
-        fprintf(stderr, "Error opening the listening port %d (%s): %s\n",
-                bind_port, service->descr, Modes.aneterr);
-        exit(1);
+    if (!bind_ports || !strcmp(bind_ports, "") || !strcmp(bind_ports, "0"))
+        return;
+
+    p = bind_ports;
+    while (p && *p) {
+        int newfds[16];
+        int nfds, i;
+
+        end = strpbrk(p, ", ");
+        if (!end) {
+            strncpy(buf, p, sizeof(buf));
+            buf[sizeof(buf)-1] = 0;
+            p = NULL;
+        } else {
+            size_t len = end - p;
+            if (len >= sizeof(buf))
+                len = sizeof(buf) - 1;
+            memcpy(buf, p, len);
+            buf[len] = 0;
+            p = end + 1;
+        }
+
+        nfds = anetTcpServer(Modes.aneterr, buf, bind_addr, newfds, sizeof(newfds));
+        if (nfds == ANET_ERR) {
+            fprintf(stderr, "Error opening the listening port %s (%s): %s\n",
+                    buf, service->descr, Modes.aneterr);
+            exit(1);
+        }
+
+        fds = realloc(fds, (n+nfds) * sizeof(int));
+        if (!fds) {
+            fprintf(stderr, "out of memory\n");
+            exit(1);
+        }
+
+        for (i = 0; i < nfds; ++i) {
+            anetNonBlock(Modes.aneterr, newfds[i]);
+            fds[n++] = newfds[i];
+        }
     }
 
-    anetNonBlock(Modes.aneterr, s);
-    service->listen_fd = s;
+    service->listener_count = n;
+    service->listener_fds = fds;
 }
 
 struct net_service *makeBeastInputService(void)
@@ -201,41 +243,23 @@ void modesInitNet(void) {
     Modes.services = NULL;
 
     // set up listeners
+    s = serviceInit("Raw TCP output", &Modes.raw_out, send_raw_heartbeat, NULL, NULL);
+    serviceListen(s, Modes.net_bind_address, Modes.net_output_raw_ports);
 
-    if (Modes.net_output_raw_port) {
-        s = serviceInit("Raw TCP output", &Modes.raw_out, send_raw_heartbeat, NULL, NULL);
-        serviceListen(s, Modes.net_bind_address, Modes.net_output_raw_port);
-    }
+    s = serviceInit("Beast TCP output", &Modes.beast_out, send_beast_heartbeat, NULL, NULL);
+    serviceListen(s, Modes.net_bind_address, Modes.net_output_beast_ports);
 
-    if (Modes.net_output_beast_port) {
-        s = serviceInit("Beast TCP output", &Modes.beast_out, send_beast_heartbeat, NULL, NULL);
-        serviceListen(s, Modes.net_bind_address, Modes.net_output_beast_port);
-    }
+    s = serviceInit("Basestation TCP output", &Modes.sbs_out, send_sbs_heartbeat, NULL, NULL);
+    serviceListen(s, Modes.net_bind_address, Modes.net_output_sbs_ports);
 
-    if (Modes.net_output_sbs_port) {
-        s = serviceInit("Basestation TCP output", &Modes.sbs_out, send_sbs_heartbeat, NULL, NULL);
-        serviceListen(s, Modes.net_bind_address, Modes.net_output_sbs_port);
-    }
+    s = serviceInit("Raw TCP input", NULL, NULL, "\n", decodeHexMessage);
+    serviceListen(s, Modes.net_bind_address, Modes.net_input_raw_ports);
 
-    if (Modes.net_fatsv_port) {
-        s = makeFatsvOutputService();
-        serviceListen(s, Modes.net_bind_address, Modes.net_fatsv_port);
-    }
+    s = makeBeastInputService();
+    serviceListen(s, Modes.net_bind_address, Modes.net_input_beast_ports);
 
-    if (Modes.net_input_raw_port) {
-        s = serviceInit("Raw TCP input", NULL, NULL, "\n", decodeHexMessage);
-        serviceListen(s, Modes.net_bind_address, Modes.net_input_raw_port);
-    }
-
-    if (Modes.net_input_beast_port) {
-        s = makeBeastInputService();
-        serviceListen(s, Modes.net_bind_address, Modes.net_input_beast_port);
-    }
-
-    if (Modes.net_http_port) {
-        s = serviceInit("HTTP server", NULL, NULL, "\r\n\r\n", handleHTTPRequest);
-        serviceListen(s, Modes.net_bind_address, Modes.net_http_port);
-    }
+    s = serviceInit("HTTP server", NULL, NULL, "\r\n\r\n", handleHTTPRequest);
+    serviceListen(s, Modes.net_bind_address, Modes.net_http_ports);
 }
 //
 //=========================================================================
@@ -244,12 +268,13 @@ void modesInitNet(void) {
 // awakened by new data arriving. This usually happens a few times every second
 //
 static struct client * modesAcceptClients(void) {
-    int fd, port;
+    int fd;
     struct net_service *s;
 
     for (s = Modes.services; s; s = s->next) {
-        if (s->listen_fd >= 0) {
-            while ((fd = anetTcpAccept(Modes.aneterr, s->listen_fd, NULL, &port)) >= 0) {
+        int i;
+        for (i = 0; i < s->listener_count; ++i) {
+            while ((fd = anetTcpAccept(Modes.aneterr, s->listener_fds[i])) >= 0) {
                 createSocketClient(s, fd);
             }
         }
@@ -460,7 +485,7 @@ static void send_raw_heartbeat(struct net_service *service)
 // Write SBS output to TCP clients
 // The message structure mm->bFlags tells us what has been updated by this message
 //
-static void modesSendSBSOutput(struct modesMessage *mm) {
+static void modesSendSBSOutput(struct modesMessage *mm, struct aircraft *a) {
     char *p;
     struct timespec now;
     struct tm    stTime_receive, stTime_now;
@@ -535,8 +560,14 @@ static void modesSendSBSOutput(struct modesMessage *mm) {
     // Field 12 is the altitude (if we have it) - force to zero if we're on the ground
     if ((mm->bFlags & MODES_ACFLAGS_AOG_GROUND) == MODES_ACFLAGS_AOG_GROUND) {
         p += sprintf(p, ",0");
+    } else if (Modes.use_hae && (mm->bFlags & MODES_ACFLAGS_ALTITUDE_HAE_VALID)) {
+        p += sprintf(p, ",%dH", mm->altitude_hae);
     } else if (mm->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) {
-        p += sprintf(p, ",%d", mm->altitude);
+        if (Modes.use_hae && (a->bFlags & MODES_ACFLAGS_HAE_DELTA_VALID)) {
+            p += sprintf(p, ",%dH", mm->altitude + a->hae_delta);
+        } else {
+            p += sprintf(p, ",%d", mm->altitude);
+        }
     } else {
         p += sprintf(p, ",");
     }
@@ -636,13 +667,17 @@ static void send_sbs_heartbeat(struct net_service *service)
 //
 //=========================================================================
 //
-void modesQueueOutput(struct modesMessage *mm) {
-    if ((mm->bFlags & MODES_ACFLAGS_FROM_MLAT) && !Modes.forward_mlat)
-        return;
+void modesQueueOutput(struct modesMessage *mm, struct aircraft *a) {
+    int is_mlat = ((mm->bFlags & MODES_ACFLAGS_FROM_MLAT) != 0);
 
-    modesSendSBSOutput(mm);
-    modesSendBeastOutput(mm);
-    modesSendRawOutput(mm);
+    if (!is_mlat) {
+        modesSendSBSOutput(mm, a);
+        modesSendRawOutput(mm);
+    }
+
+    if (!is_mlat || Modes.forward_mlat) {
+        modesSendBeastOutput(mm);
+    }
 }
 //
 //=========================================================================
@@ -869,6 +904,31 @@ static const char *jsonEscapeString(const char *str) {
     return buf;
 }
 
+static char *append_flags(char *p, char *end, int flags)
+{
+    p += snprintf(p, end-p, "[");
+    if (flags & MODES_ACFLAGS_SQUAWK_VALID)
+        p += snprintf(p, end-p, "\"squawk\",");
+    if (flags & MODES_ACFLAGS_CALLSIGN_VALID)
+        p += snprintf(p, end-p, "\"callsign\",");
+    if (flags & MODES_ACFLAGS_LATLON_VALID)
+        p += snprintf(p, end-p, "\"lat\",\"lon\",");
+    if (flags & MODES_ACFLAGS_ALTITUDE_VALID)
+        p += snprintf(p, end-p, "\"altitude\",");
+    if (flags & MODES_ACFLAGS_HEADING_VALID)
+        p += snprintf(p, end-p, "\"track\",");
+    if (flags & MODES_ACFLAGS_SPEED_VALID)
+        p += snprintf(p, end-p, "\"speed\",");
+    if (flags & MODES_ACFLAGS_VERTRATE_VALID)
+        p += snprintf(p, end-p, "\"vert_rate\",");
+    if (flags & MODES_ACFLAGS_CATEGORY_VALID)
+        p += snprintf(p, end-p, "\"category\",");
+    if (p[-1] != '[')
+        --p;
+    p += snprintf(p, end-p, "]");
+    return p;
+}
+
 char *generateAircraftJson(const char *url_path, int *len) {
     uint64_t now = mstime();
     struct aircraft *a;
@@ -919,26 +979,12 @@ char *generateAircraftJson(const char *url_path, int *len) {
         if (a->bFlags & MODES_ACFLAGS_CATEGORY_VALID)
             p += snprintf(p, end-p, ",\"category\":\"%02X\"", a->category);
         if (a->mlatFlags) {
-            p += snprintf(p, end-p, ",\"mlat\":[");
-            if (a->mlatFlags & MODES_ACFLAGS_SQUAWK_VALID)
-                p += snprintf(p, end-p, "\"squawk\",");
-            if (a->mlatFlags & MODES_ACFLAGS_CALLSIGN_VALID)
-                p += snprintf(p, end-p, "\"callsign\",");
-            if (a->mlatFlags & MODES_ACFLAGS_LATLON_VALID)
-                p += snprintf(p, end-p, "\"lat\",\"lon\",");
-            if (a->mlatFlags & MODES_ACFLAGS_ALTITUDE_VALID)
-                p += snprintf(p, end-p, "\"altitude\",");
-            if (a->mlatFlags & MODES_ACFLAGS_HEADING_VALID)
-                p += snprintf(p, end-p, "\"track\",");
-            if (a->mlatFlags & MODES_ACFLAGS_SPEED_VALID)
-                p += snprintf(p, end-p, "\"speed\",");
-            if (a->mlatFlags & MODES_ACFLAGS_VERTRATE_VALID)
-                p += snprintf(p, end-p, "\"vert_rate\",");
-            if (a->mlatFlags & MODES_ACFLAGS_CATEGORY_VALID)
-                p += snprintf(p, end-p, "\"category\",");
-            if (p[-1] != '[')
-                --p;
-            p += snprintf(p, end-p, "]");
+            p += snprintf(p, end-p, ",\"mlat\":");
+            p = append_flags(p, end, a->mlatFlags);
+        }
+        if (a->tisbFlags) {
+            p += snprintf(p, end-p, ",\"tisb\":");
+            p = append_flags(p, end, a->tisbFlags);
         }
 
         p += snprintf(p, end-p, ",\"messages\":%ld,\"seen\":%.1f,\"rssi\":%.1f}",
@@ -1544,7 +1590,7 @@ static void modesReadFromClient(struct client *c) {
     }
 }
 
-#define TSV_MAX_PACKET_SIZE 160
+#define TSV_MAX_PACKET_SIZE 180
 
 static void writeFATSV()
 {
@@ -1589,6 +1635,7 @@ static void writeFATSV()
         char *p, *end;
 
         int flags;
+        int used_tisb = 0;
 
         // skip non-ICAO
         if (a->addr & MODES_NON_ICAO_ADDRESS)
@@ -1611,6 +1658,7 @@ static void writeFATSV()
             alt = a->altitude;
             altAge = now - a->seenAltitude;
             altValid = (altAge <= 30000);
+            used_tisb |= (a->tisbFlags & MODES_ACFLAGS_ALTITUDE_VALID);
         }
         
         if (flags & MODES_ACFLAGS_AOG_VALID) {
@@ -1623,21 +1671,26 @@ static void writeFATSV()
                 altAge = 0;
                 ground = 1;
             }
+
+            used_tisb |= (a->tisbFlags & MODES_ACFLAGS_AOG_VALID);
         }
 
         if (flags & MODES_ACFLAGS_LATLON_VALID) {
             latlonAge = now - a->seenLatLon;
             latlonValid = (latlonAge <= 30000);
+            used_tisb |= (a->tisbFlags & MODES_ACFLAGS_LATLON_VALID);
         }
 
         if (flags & MODES_ACFLAGS_HEADING_VALID) {
             trackAge = now - a->seenTrack;
             trackValid = (trackAge <= 30000);
+            used_tisb |= (a->tisbFlags & MODES_ACFLAGS_HEADING_VALID);
         }
 
         if (flags & MODES_ACFLAGS_SPEED_VALID) {
             speedAge = now - a->seenSpeed;
             speedValid = (speedAge <= 30000);
+            used_tisb |= (a->tisbFlags & MODES_ACFLAGS_SPEED_VALID);
         }
 
         // don't send mode S very often
@@ -1717,6 +1770,10 @@ static void writeFATSV()
         if (trackValid && trackAge < emittedAge) {
             p += snprintf(p, bufsize(p,end), "\theading\t%d", a->track);
             useful = 1;
+        }
+
+        if (used_tisb) {
+            p += snprintf(p, bufsize(p,end), "\ttisb\t1");
         }
 
         // if we didn't get at least an alt or a speed or a latlon or
