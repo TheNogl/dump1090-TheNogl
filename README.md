@@ -32,7 +32,7 @@ See the file COPYING for details.
 * toggle plane colors between Altitude colors and adb-s/mlat position colors.
 * toggle the heatmap and the range/altitude view on and off (including their panel and legends).
 
-# Heatmap examples
+# Screenshots en video
 
 Heatmap
 [![Dump1090 Heatmap](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/heatmapexample16.png)](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/heatmapexample16.png)
