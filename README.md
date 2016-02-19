@@ -1,14 +1,16 @@
-# dump1090-mutability Debian/Raspbian packages
+# dump1090-mutability Debian/Raspbian packages 
+# with heatmap & rangeview
 [![Build Status](https://travis-ci.org/mutability/dump1090.svg?branch=master)](https://travis-ci.org/mutability/dump1090)
 
-This is a fork of MalcolmRobb's version of dump1090
+Dump1090-mutability is a fork of MalcolmRobb's version of dump1090
 that adds new functionality and is designed to be built as
 a Debian/Raspbian package.
+This fork adds a heatmap and rangeview to it.
 
 This version is licensed under the GPL (v2 or later).
 See the file COPYING for details.
 
-# Features
+# Dump1090-mutability features
 
 * 2.4MHz "oversampling" support
 * doesn't run as root
@@ -20,48 +22,27 @@ See the file COPYING for details.
 * tries to do things "the debian way" when it comes to config, package structure, etc
 * probably a bunch of other things I've forgotten..
 
-# Simple install via apt-get
+# Extra heatmap & rangeview features
 
-There is a repository that contains the current releases. To set up the repository:
+* display a csv heatmap file (a sample heatmap is included).
+* adjust the opacity, intensity and radius of the heatmap from a movable panel.
+* load a heatmap from the dump1090 web directory or from the heatmap panel in the browser.
+* display a KML range/altitude file (a link to a sample rangeview file is included)..
+* display distance range rings around the antenna if the ability to toggle it.
+* provide moveable legends for the altitude colors and range rings.
+* toggle plane colors between Altitude colors and adb-s/mlat position colors.
+* toggle the heatmap and the range/altitude view on and off (including their panel and legends).
 
-````
-$ wget https://github.com/mutability/mutability-repo/releases/download/v0.1.0/mutability-repo_0.1.0_armhf.deb
-$ sudo dpkg -i mutability-repo_0.1.0_armhf.deb
-````
+# Heatmap examples
 
-Then you can install and upgrade packages via apt-get as needed:
+Heatmap
+[![Dump1090 Heatmap](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/heatmapexample16.png)](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/heatmapexample16.png)
 
-````
-$ sudo apt-get update && sudo apt-get install dump1090-mutability
-$ sudo dpkg-reconfigure dump1090-mutability                           # for detailed configuration
-$ sudo apt-get install lighttpd && sudo lighty-enable-mod dump1090    # if you want to use the external webserver integration
-````
+Rangeview
+[![Dump1090 rangeview](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/rangeviewexample16.png)](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/rangeviewexample16.png)
 
-Installing the mutability-repo package also installs the public key used to sign the packages; the signatures will be verified automatically by apt-get.
-
-# Manual repository setup
-
-Add a suitable entry to sources.list:
-
-````
-# echo "deb http://repo.mutability.co.uk/raspbian wheezy rpi" >/etc/apt/sources.list.d/mutabiltiy.list
-````
-
-Obtain the public key used to sign the repository release by a method of your choice. This is the signing key:
-
-````
-pub   2048R/4D731812 2014-12-28 [expires: 2015-12-28]
-      Key fingerprint = 2098 7C8D D31A 6107 E033  7CC3 80D5 57AA 4D73 1812
-uid                  Oliver Jowett (repo.mutability.co.uk archive signing key) <oliver@mutability.co.uk>
-````
-
-which is available from:
-
- * [GitHub](https://github.com/mutability/mutability-repo/raw/master/mutability.gpg)
- * [repo.mutability.co.uk](http://repo.mutability.co.uk/mutability.gpg) (caution - not HTTPS!)
- * keys.gnupg.net (`gpg --keyserver keys.gnupg.net --recv-keys 4D731812`)
-
-Install the key with `apt-key add` or by placing the keyring in `/etc/apt/trusted.gpg.d/`
+Youtube video:
+[![Dump1090 rangeview](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/youtube16.png)](https://www.youtube.com/watch?v=Qz4XSFRjLTI)
 
 # Manual installation
 
@@ -76,6 +57,9 @@ Then you will need the dump1090-mutability package itself from
 [this release page](https://github.com/mutability/dump1090/releases)
 
 Install the packages with dpkg.
+
+Step by step installation instructions available at
+[this page](http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html)
 
 # Configuration
 
