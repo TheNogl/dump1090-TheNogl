@@ -1,7 +1,7 @@
 # Dump1090-mutability Debian/Raspbian packages with heatmap & rangeview
 [![Build Status](https://travis-ci.org/mutability/dump1090.svg?branch=master)](https://travis-ci.org/mutability/dump1090)
 
-[Dump1090-mutability](https://github.com/mutability/dump1090) is a fork of [MalcolmRobb's version of dump1090](https://github.com/MalcolmRobb/dump1090)
+[Dump1090-mutability](https://github.com/mutability/dump1090) is Oliver Jowett's fork of [MalcolmRobb's version of dump1090](https://github.com/MalcolmRobb/dump1090)
 that adds new functionality and is designed to be built as
 a Debian/Raspbian package.
 This fork adds a heatmap and rangeview to it.
@@ -57,7 +57,7 @@ apt-get update && apt-get install -y apt-utils build-essential ca-certificates c
 
 You will need a librtlsdr0 package for Raspbian.
 There is no standard build of this.
-I have built suitable packages that are available from 
+Oliver Jowett has built suitable packages that are available from 
 [this release page](https://github.com/mutability/librtlsdr/releases)  
 Install these rtl-sdr  packages with dpkg:   
 ````
@@ -87,7 +87,7 @@ $ cd ..
 $ dpkg -i dump1090-mutability_1.15~dev_armhf.deb
 ````
 
-Configure web server:
+Configure the web server:
 ````
 $ sudo lighty-enable-mod dump1090
 $ sudo service lighttpd force-reload
@@ -97,12 +97,12 @@ It makes the map view available at http://<pi address>/dump1090/
 
 ## Step by step instructions
 
-Step by step installation instructions for Raspbian are available at: 
+A step by step installation instruction for Raspbian is available at: 
 [http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html](http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html)   
 
 ## Dump1090 in a docker container
   
-Installation in a Docker container is also possible. Follow the instructions for X86_64/AMD64 and ARM(Raspbian) at [github.com/tedsluis/docker-dump1090](https://github.com/tedsluis/docker-dump1090) or [hub.docker.com/r/tedsluis/dump1090-mutability](https://hub.docker.com/r/tedsluis/dump1090-mutability)   
+A dump1090 installation in a Docker container is also possible. Follow the instructions for X86_64/AMD64 and ARM(Raspbian) at [github.com/tedsluis/docker-dump1090](https://github.com/tedsluis/docker-dump1090) or [hub.docker.com/r/tedsluis/dump1090-mutability](https://hub.docker.com/r/tedsluis/dump1090-mutability)   
 
 # Configuration
 
@@ -125,8 +125,10 @@ There is a logrotate configuration installed by the package at `/etc/logrotate.d
 # Bug reports, feedback etc
 
 Please use the [github issues page](https://github.com/tedsluis/dump1090/issues) to report any problems.
-Or you can [email me](mailto:ted.sluis@gmail.com).
 
-While there is a Makefile that you can use, the preferred way to build is via the Debian package building system:
-
-
+Ted Sluis  
+ted.sluis@gmail.com  
+https://github.com/tedsluis  
+https://hub.docker.com/r/tedsluis  
+[https://www.youtube.com/tedsluis](https://www.youtube.com/channel/UCnR4rVCm_8gCjY_m3t1ExgA)   
+http://flightaware.com/adsb/stats/user/tedsluis#stats-6731  
