@@ -50,20 +50,59 @@ Youtube video:
 
 # Manual installation
 
-To install from packages directly:
+To build it from source first install these packages:
+````
+apt-get update && apt-get install -y apt-utils build-essential ca-certificates cron curl debhelper dialog dpkg-dev git librtlsdr-dev libusb-1.0-0-dev lighttpd netcat net-tools pkg-config python2.7 wget 
+````
 
 You will need a librtlsdr0 package for Raspbian.
 There is no standard build of this.
 I have built suitable packages that are available from 
-[this release page](https://github.com/mutability/librtlsdr/releases)
+[this release page](https://github.com/mutability/librtlsdr/releases)  
+Install these rtl-sdr  packages with dpkg:   
+````
+$ wget https://github.com/mutability/librtlsdr/releases/download/v0.5.4_git-1/librtlsdr0_0.5.4.git-1_armhf.deb
+$ wget https://github.com/mutability/librtlsdr/releases/download/v0.5.4_git-1/librtlsdr-dev_0.5.4.git-1_armhf.deb
+$ wget https://github.com/mutability/librtlsdr/releases/download/v0.5.4_git-1/rtl-sdr_0.5.4.git-1_armhf.deb
+$ sudo dpkg -i librtlsdr0_0.5.4.git-1_armhf.deb
+$ sudo dpkg -i librtlsdr-dev_0.5.4.git-1_armhf.deb
+$ sudo dpkg -i rtl-sdr_0.5.4.git-1_armhf.deb
+````
 
-Then you will need the dump1090-mutability package itself from
-[this release page](https://github.com/mutability/dump1090/releases)
+On X86 you should install these rtl-sdr packages:   
+````
+apt-get update && apt-get install -y librtlsdr0 rtl-sdr 
+````
 
-Install the packages with dpkg.
+Build dump1090 from source:
+````
+$ git clone https://github.com/tedsluis/dump1090.git
+$ cd dump1090
+$ dpkg-buildpackage -b
+````
 
-Step by step installation instructions available at
-[http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html](http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html)
+Install dump1090:
+````
+$ cd ..
+$ dpkg -i dump1090-mutability_1.15~dev_armhf.deb
+````
+
+Configure web server:
+````
+$ sudo lighty-enable-mod dump1090
+$ sudo service lighttpd force-reload
+````
+This uses a configuration file installed by the package at `/etc/lighttpd/conf-available/89-dump1090.conf`.   
+It makes the map view available at http://<pi address>/dump1090/   
+
+## Step by step instructions
+
+Step by step installation instructions for Raspbian are available at: 
+[http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html](http://discussions.flightaware.com/ads-b-flight-tracking-f21/heatmap-range-altitude-view-for-dump1090-mutability-v1-15-t35844.html)   
+
+## Dump1090 in a docker container
+  
+Installation in a Docker container is also possible. Follow the instructions for X86_64/AMD64 and ARM(Raspbian) at [github.com/tedsluis/docker-dump1090](https://github.com/tedsluis/docker-dump1090) or [hub.docker.com/r/tedsluis/dump1090-mutability](https://hub.docker.com/r/tedsluis/dump1090-mutability)   
 
 # Configuration
 
@@ -77,27 +116,6 @@ Notable defaults that are perhaps not what you'd first expect:
 
 To reconfigure, either use `dpkg-reconfigure dump1090-mutability` or edit `/etc/default/dump1090-mutability`. Both should be self-explanatory.
 
-## External webserver configuration
-
-This is the recommended configuration; a dedicated webserver is almost always going to be better and more secure than the collection of hacks that is the dump1090 webserver.
-It works by having dump1090 write json files to a path under `/run` once a second (this is on tmpfs and will not write to the sdcard).
-Then an external webserver is used to serve both the static html/javascript files making up the map view, and the json files that provide the dynamic data.
-
-The package includes a config file for lighttpd (which is what I happen to use on my system).
-To use this:
-
-````
-# apt-get install lighttpd         # if you don't have it already
-# lighty-enable-mod dump1090
-# service lighttpd force-reload
-````
-
-This uses a configuration file installed by the package at `/etc/lighttpd/conf-available/89-dump1090.conf`.
-It makes the map view available at http://<pi address>/dump1090/
-
-This should also work fine with other webservers, you will need to write a similar config to the lighttpd one (it's basically just a couple of aliases).
-If you do set up a config for something else, please send me a copy so I can integrate it into the package!
-
 ## Logging
 
 The default configuration logs to `/var/log/dump1090-mutability.log` (this can be reconfigured).
@@ -106,38 +124,9 @@ There is a logrotate configuration installed by the package at `/etc/logrotate.d
 
 # Bug reports, feedback etc
 
-Please use the [github issues page](https://github.com/mutability/dump1090/issues) to report any problems.
-Or you can [email me](mailto:oliver@mutability.co.uk).
-
-# Future plans
-
-Packages following the same model for MalcolmRobb & FlightAware's forks of dump1090 are in the pipeline.
-So is a repackaged version of piaware.
-
-# Building from source
+Please use the [github issues page](https://github.com/tedsluis/dump1090/issues) to report any problems.
+Or you can [email me](mailto:ted.sluis@gmail.com).
 
 While there is a Makefile that you can use, the preferred way to build is via the Debian package building system:
 
-````
-$ sudo apt-get install librtlsdr-dev libusb-1.0-0-dev pkg-config debhelper
-$ dpkg-buildpackage -b
-````
 
-Or you can use debuild/pdebuild. I find building via qemubuilder quite effective for building images for Raspbian (it's actually faster to build on an emulated ARM running on my PC than to build directly on real hardware).
-
-Here's the pbuilder config I use to build the Raspbian packages:
-
-````
-MIRRORSITE=http://mirrordirector.raspbian.org/raspbian/
-PDEBUILD_PBUILDER=cowbuilder
-BASEPATH=/var/cache/pbuilder/armhf-raspbian-wheezy-base.cow
-DISTRIBUTION=wheezy
-OTHERMIRROR="deb http://repo.mutability.co.uk/raspbian wheezy rpi"
-ARCHITECTURE=armhf
-DEBOOTSTRAP=qemu-debootstrap
-DEBOOTSTRAPOPTS="--variant=buildd --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg"
-COMPONENTS="main contrib non-free rpi"
-EXTRAPACKAGES="eatmydata debhelper fakeroot"
-ALLOWUNTRUSTED="no"
-APTKEYRINGS=("/home/oliver/ppa/mutability.gpg")
-````
