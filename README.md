@@ -34,7 +34,7 @@ See the file COPYING for details.
 
 # Live view
 
-Watch my dump1090 fork with heatmap and rangeview in the Google cloud: http://130.211.68.85/dump1090/gmap.html
+Watch my dump1090 fork with heatmap and rangeview in the Google cloud: http://130.211.186.77/dump1090/gmap.html
 (This dump1090 runs on a 60-day free trail that is available until 9 april 2016)
 
 # Screenshots and video
