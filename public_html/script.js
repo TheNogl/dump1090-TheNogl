@@ -512,7 +512,7 @@ function initialize_map() {
 	// Add home marker if requested
 	if (SitePosition) {
 	    var markerImage = new google.maps.MarkerImage(
-	        'http://maps.google.com/mapfiles/kml/pal4/icon57.png',
+	        '//maps.google.com/mapfiles/kml/pal4/icon57.png',
             new google.maps.Size(32, 32),   // Image size
             new google.maps.Point(0, 0),    // Origin point of image
             new google.maps.Point(16, 16)); // Position where marker should point 
@@ -807,13 +807,14 @@ function refreshSelected() {
         $('#dump1090_infoblock').css('display','none');
         $('#selected_infoblock').css('display','block');
 
-        $('#selected_flightaware_link').attr('href','http://flightaware.com/live/modes/'+selected.icao+'/redirect');
+        $('#selected_flightaware_link').attr('href','//flightaware.com/live/modes/'+selected.icao+'/redirect');
         
         if (selected.flight !== null && selected.flight !== "") {
                 $('#selected_callsign').text(selected.flight);
                 $('#selected_links').css('display','inline');
                 $('#selected_fr24_link').attr('href','http://fr24.com/'+selected.flight);
                 $('#selected_flightstats_link').attr('href','http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?flightNumber='+selected.flight);
+    $('#selected_planefinder_link').attr('href','https://planefinder.net/flight/'+selected.flight);
         } else {
                 $('#selected_callsign').text('n/a');
                 $('#selected_links').css('display','none');

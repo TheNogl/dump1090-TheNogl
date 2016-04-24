@@ -17,7 +17,7 @@ endif
 CPPFLAGS+=-DMODES_DUMP1090_VERSION=\"$(DUMP1090_VERSION)\"
 CFLAGS+=-O2 -g -Wall -Werror -W
 LIBS=-lpthread -lm
-LIBS_RTL=`pkg-config --libs librtlsdr`
+LIBS_RTL=`pkg-config --libs librtlsdr libusb-1.0`
 CC=gcc
 
 UNAME := $(shell uname)
@@ -27,8 +27,13 @@ LIBS+=-lrt
 endif
 ifeq ($(UNAME), Darwin)
 # TODO: Putting GCC in C11 mode breaks things.
-CFLAGS+=-std=c11
+CFLAGS+=-std=c11 -DMISSING_GETTIME -DMISSING_NANOSLEEP
 COMPAT+=compat/clock_gettime/clock_gettime.o compat/clock_nanosleep/clock_nanosleep.o
+endif
+
+ifeq ($(UNAME), OpenBSD)
+CFLAGS+= -DMISSING_NANOSLEEP
+COMPAT+= compat/clock_nanosleep/clock_nanosleep.o
 endif
 
 all: dump1090 view1090
