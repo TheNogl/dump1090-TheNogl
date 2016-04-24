@@ -93,7 +93,7 @@ $ sudo lighty-enable-mod dump1090
 $ sudo service lighttpd force-reload
 ````
 This uses a configuration file installed by the package at `/etc/lighttpd/conf-available/89-dump1090.conf`.   
-It makes the map view available at http://<pi address>/dump1090/   
+It makes the map view available at http://IP_ADDRESS/dump1090
 
 ## Step by step instructions
 
