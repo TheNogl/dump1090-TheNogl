@@ -1,14 +1,55 @@
 # Dump1090-mutability Debian/Raspbian packages with heatmap & rangeview
-[![Build Status](https://travis-ci.org/mutability/dump1090.svg?branch=master)](https://travis-ci.org/mutability/dump1090)
-
+[![Build Status](https://travis-ci.org/mutability/dump1090.svg?branch=master)](https://travis-ci.org/mutability/dump1090)  
+   
 [Dump1090-mutability](https://github.com/mutability/dump1090) is Oliver Jowett's fork of [MalcolmRobb's version of dump1090](https://github.com/MalcolmRobb/dump1090)
 that adds new functionality and is designed to be built as
 a Debian/Raspbian package.
 This fork adds a heatmap and rangeview to it.
 
 This version is licensed under the GPL (v2 or later).
-See the file COPYING for details.
+See the file COPYING for details.  
+  
+# Table of contents  
 
+   * [Dump1090-mutability Debian/Raspbian packages with heatmap &amp; rangeview](README.md#dump1090-mutability-debianraspbian-packages-with-heatmap--rangeview)
+      * [Dump1090-mutability features](README.md#dump1090-mutability-features)
+      * [Extra heatmap &amp; rangeview features](README.md#extra-heatmap--rangeview-features)
+      * [Live view](README.md#live-view)
+      * [Screenshots and video](README.md#screenshots-and-video)
+      * [Manual installation](README.md#manual-installation)
+         * [Step by step instructions](README.md#step-by-step-instructions)
+         * [Dump1090 in a docker container](README.md#dump1090-in-a-docker-container)
+      * [Configuration](README.md#configuration)
+         * [Logging](README.md#logging)
+      * [Bug reports, feedback etc](README.md#bug-reports-feedback-etc)
+
+   * [Dump1090 README](README-dump1090.md#dump1090-readme)
+      * [Installation](README-dump1090.md#installation)
+      * [Normal usage](README-dump1090.md#normal-usage)
+      * [Using files as source of data](README-dump1090.md#using-files-as-source-of-data)
+      * [Additional options](README-dump1090.md#additional-options)
+      * [Reliability](README-dump1090.md#reliability)
+      * [Performances and sensibility of detection](README-dump1090.md#performances-and-sensibility-of-detection)
+      * [Network server features](README-dump1090.md#network-server-features)
+      * [Port 30002](README-dump1090.md#port-30002)
+      * [Port 30001](README-dump1090.md#port-30001)
+      * [Port 30003](README-dump1090.md#port-30003)
+      * [Antenna](README-dump1090.md#antenna)
+      * [Aggressive mode](README-dump1090.md#aggressive-mode)
+      * [Debug mode](README-dump1090.md#debug-mode)
+      * [How this program works?](README-dump1090.md#how-this-program-works)
+      * [How to test the program?](README-dump1090.md#how-to-test-the-program)
+      * [What is --strip mode?](README-dump1090.md#what-is---strip-mode)
+      * [Contributing](README-dump1090.md#contributing)
+      * [Credits](README-dump1090.md#credits)
+
+   * [JSON output formats](README-json.md#json-output-formats)
+      * [Reading the json files](README-json.md#reading-the-json-files)
+      * [receiver.json](README-json.md#receiverjson)
+      * [aircraft.json](README-json.md#aircraftjson)
+      * [history_0.json, history_1.json, ..., history_119.json](README-json.md#history_0json-history_1json--history_119json)
+      * [stats.json](README-json.md#statsjson)
+      
 # Dump1090-mutability features
 
 * 2.4MHz "oversampling" support
@@ -40,13 +81,13 @@ Watch my dump1090 fork with heatmap and rangeview in the Google cloud: http://13
 # Screenshots and video
 
 Heatmap
-[![Dump1090 Heatmap](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/heatmapexample16.png)](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/heatmapexample16.png)
+[![Dump1090 Heatmap](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/heatmapexample16.png)](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/heatmapexample16.png)
 
 Rangeview
-[![Dump1090 rangeview](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/rangeviewexample16.png)](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/rangeviewexample16.png)
+[![Dump1090 rangeview](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/rangeviewexample16.png)](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/rangeviewexample16.png)
 
 Youtube video:
-[![Dump1090 rangeview](https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/youtube16.png)](https://www.youtube.com/watch?v=Qz4XSFRjLTI)
+[![Dump1090 rangeview](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/youtube16.png)](https://www.youtube.com/watch?v=Qz4XSFRjLTI)
 
 # Manual installation
 
