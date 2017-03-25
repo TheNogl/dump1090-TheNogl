@@ -43,7 +43,7 @@ SiteName    = "My Radar Site"; // tooltip of the marker
 // Enables KML overlay on map, UserMap must have a value below when "true"
 UserMapShow = true;            //true to show KML
 // KML to show, for example your rangeview.kml: 
-UserMap     = "https://dl.dropboxusercontent.com/u/17865731/dump1090-20150916/rangeview.kml";  // your KML URL (publicly available domain)
+UserMap     = "https://github.com/tedsluis/dump1090/raw/master/exampledata/radar.kml";  // your KML URL (publicly available domain)
 
 // User heatmap (csv File)
 // Enables Heatmap on map
