@@ -44,6 +44,8 @@ var MessageRate = 0;
 
 var NBSP='\u00a0';
 
+var squawks = [];
+
 // This converts numbers with commas
 function numberWithCommas(x) {
 	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -251,6 +253,18 @@ function initialize() {
                         initialize_map();
                         start_load_history();
                 });
+
+        // Load squawk code descriptions
+        $.ajax({ url: 'squawk.json',
+                 timeout: 5000,
+                 cache: false,
+                 dataType: 'json' })
+
+                .done(function(data) {
+                        squawks = data;
+                })
+
+
 }
 
 var CurrentHistoryFetch = null;
@@ -844,8 +858,10 @@ function refreshSelected() {
 
         if (selected.squawk === null || selected.squawk === '0000') {
                 $('#selected_squawk').text('n/a');
+                $('#selected_squawk_description').text('n/a');
         } else {
                 $('#selected_squawk').text(selected.squawk);
+                $('#selected_squawk_description').text(squawks[selected.squawk]);
         }
 	
         $('#selected_speed').text(format_speed_long(selected.speed));
