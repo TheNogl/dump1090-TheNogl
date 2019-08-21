@@ -1,0 +1,12 @@
+/usr/share/dump1090-mutability/html/config.js
+/usr/share/dump1090-mutability/html/gmap.html
+/usr/share/dump1090-mutability/html/script.js
+/usr/share/dump1090-mutability/html/planeObject.js
+/usr/share/dump1090-mutability/html/style.css
+/usr/share/dump1090-mutability/html/markers.js
+/usr/share/dump1090-mutability/html/formatter.js
+/usr/share/dump1090-mutability/html/dbloader.js
+/etc/init.d/dump1090-mutability
+/etc/lighttpd/conf-available/89-dump1090.conf
+/etc/logrotate.d/dump1090-mutability
+/etc/nginx/sites-available/dump1090-mutability
