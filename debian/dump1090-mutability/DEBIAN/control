@@ -1,0 +1,18 @@
+Package: dump1090-TheNogl
+Version: 1.15~dev
+Architecture: armhf
+Maintainer: Patrick Nagelmaier <nagelmaier@gmail.com>
+Installed-Size: 4803
+Depends: libc6 (>= 2.7), librtlsdr0, libusb-1.0-0 (>= 2:1.0.8), debconf (>= 0.5) | debconf-2.0, adduser
+Recommends: python (>= 2.5), cron | cron-daemon, curl
+Suggests: lighttpd
+Provides: fatsv-data-source
+Section: embedded
+Priority: extra
+Homepage: https://github.com/TheNogl/dump1090
+Description: ADS-B Ground Station System for RTL-SDR
+ Networked Aviation Mode S / ADS-B decoder/translator with RTL-SDR software
+ defined radio USB device support.
+ .
+ This is a packaging of the "TheNogl" fork of dump1090 that includes
+ sampling at 2.4MHz, Heat- and Rangemap, dark-styled webpage and other improvements.
