@@ -49,6 +49,8 @@
 
 #include "dump1090.h"
 
+#include <rtl-sdr.h>
+
 void add_timespecs(const struct timespec *x, const struct timespec *y, struct timespec *z)
 {
     z->tv_sec = x->tv_sec + y->tv_sec;
@@ -78,6 +80,7 @@ void display_stats(struct stats *st) {
 
     if (!Modes.net_only) {
         printf("Local receiver:\n");
+	printf("Gain reported by device: %.2f dB\n", 		    rtlsdr_get_tuner_gain(Modes.dev)/10.0);
         printf("  %llu samples processed\n",                        (unsigned long long)st->samples_processed);
         printf("  %llu samples dropped\n",                          (unsigned long long)st->samples_dropped);
 

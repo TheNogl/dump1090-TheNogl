@@ -1,0 +1,13 @@
+Package: dump1090-mutability-dbgsym
+Source: dump1090-mutability
+Version: 1.15~dev
+Auto-Built-Package: debug-symbols
+Architecture: armhf
+Maintainer: Patrick Nagelmaier <nagelmaier@gmail.com>
+Installed-Size: 247
+Depends: dump1090-mutability (= 1.15~dev)
+Section: debug
+Priority: extra
+Homepage: https://github.com/TheNogl/dump1090
+Description: Debug symbols for dump1090-mutability
+Build-Ids: 1e1b42b97f975f554ead7cf94d019f30a635816e 43c264a15065fdbc280dd382371d565ca6304f50

@@ -1,4 +1,4 @@
-Package: dump1090-TheNogl
+Package: dump1090-mutability
 Version: 1.15~dev
 Architecture: armhf
 Maintainer: Patrick Nagelmaier <nagelmaier@gmail.com>

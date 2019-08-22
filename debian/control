@@ -1,4 +1,4 @@
-Source: dump1090-TheNogl
+Source: dump1090-mutability
 Section: embedded
 Priority: extra
 Maintainer: Patrick Nagelmaier <nagelmaier@gmail.com>
@@ -7,7 +7,7 @@ Standards-Version: 3.9.3
 Homepage: https://github.com/TheNogl/dump1090
 Vcs-Git: https://github.com/TheNogl/dump1090.git
 
-Package: dump1090-TheNogl
+Package: dump1090-mutability
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, adduser
 Recommends: python(>=2.5), cron | cron-daemon, curl
