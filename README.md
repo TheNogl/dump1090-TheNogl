@@ -4,7 +4,7 @@
 [Dump1090-mutability](https://github.com/mutability/dump1090) is Oliver Jowett's fork of [MalcolmRobb's version of dump1090](https://github.com/MalcolmRobb/dump1090)
 that adds new functionality and is designed to be built as
 a Debian/Raspbian package.
-This fork adds a heatmap and rangeview to it.
+This fork adds a heatmap and rangeview from tedsluis's fork to it as well as an updated webview by kazazes.
 
 This version is licensed under the GPL (v2 or later).
 See the file COPYING for details.  
@@ -58,7 +58,7 @@ See the file COPYING for details.
 * can start from init.d, with detailed config via debconf or `/etc/default/dump1090-mutability`
 * can serve the virtual radar map via an external webserver (lighttpd integration included by default)
 * map view uses receiver lat/long given to dump1090 automatically
-* somewhat cleaned-up network code
+* somewhat cleaned-up network code (http disabled by default)
 * tries to do things "the debian way" when it comes to config, package structure, etc
 * probably a bunch of other things I've forgotten..
 
@@ -75,19 +75,20 @@ See the file COPYING for details.
 
 # Live view
 
-Watch my dump1090 fork with heatmap and rangeview in the Google cloud: http://130.211.186.77/dump1090/gmap.html
-(This dump1090 runs on a 60-day free trail that is available until 20 june 2016)
+Watch my dump1090 fork with heatmap and rangeview on this temporary server: http://nagelmaier.ddns.net/dump1090/gmap.html
+(This dump1090 runs on a temporary server and will not always be available)
+Antenna and Antennaposition are far from perfect right now and will be upgraded later
 
-# Screenshots and video
+# Screenshots and video by tedsluis
 
 Heatmap
-[![Dump1090 Heatmap](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/heatmapexample16.png)](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/heatmapexample16.png)
+[![Dump1090 Heatmap](https://raw.githubusercontent.com/TheNogl/dump1090/master/img/heatmapexample16.png)](https://raw.githubusercontent.com/TheNogl/dump1090/master/img/heatmapexample16.png)
 
 Rangeview
-[![Dump1090 rangeview](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/rangeviewexample16.png)](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/rangeviewexample16.png)
+[![Dump1090 rangeview](https://raw.githubusercontent.com/TheNogl/dump1090/master/img/rangeviewexample16.png)](https://raw.githubusercontent.com/TheNogl/dump1090/master/img/rangeviewexample16.png)
 
 Youtube video:
-[![Dump1090 rangeview](https://raw.githubusercontent.com/tedsluis/dump1090/master/img/youtube16.png)](https://www.youtube.com/watch?v=Qz4XSFRjLTI)
+[![Dump1090 rangeview](https://raw.githubusercontent.com/TheNogl/dump1090/master/img/youtube16.png)](https://www.youtube.com/watch?v=Qz4XSFRjLTI)
 
 # Manual installation
 
@@ -117,7 +118,7 @@ apt-get update && apt-get install -y librtlsdr0 rtl-sdr
 
 Build dump1090 from source:
 ````
-$ git clone https://github.com/tedsluis/dump1090.git
+$ git clone https://github.com/TheNogl/dump1090.git
 $ cd dump1090
 $ dpkg-buildpackage -b
 ````
@@ -163,13 +164,17 @@ The default configuration logs to `/var/log/dump1090-mutability.log` (this can b
 The only real logging other than any startup problems is hourly stats.
 There is a logrotate configuration installed by the package at `/etc/logrotate.d/dump1090-mutability` that will rotate that logfile weekly.
 
+# Tools
+
+!This version is untested right now!
+
+Tools for message logging, heatmap and rangeview generation can be found in the tools folder.
+These are based on tedsluis's repository dump1090.socket30003. Since his version of the rangemap didn't work correctly on my system I started rewriting it myself in python.
+Edit socket30003.cfg, rangeupdate.sh, rangemap.py and heatupdate.sh to your settings.
+Run socket30003.pl to log messages.
+Execute rangeupdate.sh and heatupdate.sh to update your map overlays.
+The range-tools are not very user-friendly right now, because everything is hard coded and settings have to be changed throughout the code.
+
 # Bug reports, feedback etc
 
-Please use the [github issues page](https://github.com/tedsluis/dump1090/issues) to report any problems.
-
-Ted Sluis  
-ted.sluis@gmail.com  
-https://github.com/tedsluis  
-https://hub.docker.com/r/tedsluis  
-[https://www.youtube.com/tedsluis](https://www.youtube.com/channel/UCnR4rVCm_8gCjY_m3t1ExgA)   
-http://flightaware.com/adsb/stats/user/tedsluis#stats-6731  
+Please use the [github issues page](https://github.com/TheNogl/dump1090/issues) to report any problems.
