@@ -169,10 +169,15 @@ There is a logrotate configuration installed by the package at `/etc/logrotate.d
 !This version is untested right now!
 
 Tools for message logging, heatmap and rangeview generation can be found in the tools folder.
+
 These are based on tedsluis's repository dump1090.socket30003. Since his version of the rangemap didn't work correctly on my system I started rewriting it myself in python.
+
 Edit socket30003.cfg, rangeupdate.sh, rangemap.py and heatupdate.sh to your settings.
+
 Run socket30003.pl to log messages.
+
 Execute rangeupdate.sh and heatupdate.sh to update your map overlays.
+
 The range-tools are not very user-friendly right now, because everything is hard coded and settings have to be changed throughout the code.
 
 # Bug reports, feedback etc
